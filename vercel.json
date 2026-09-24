@@ -18,6 +18,7 @@
     { "src": "/dashboard", "dest": "/public/dashboard.html" },
     { "src": "/home", "dest": "/public/home.html" },
     { "src": "/", "dest": "/public/home.html" },
+    { "src": "/warranty-images", "dest": "/public/warranty-images.html" },
     { "src": "/(.*)", "dest": "/public/$1" }
   ]
 }
