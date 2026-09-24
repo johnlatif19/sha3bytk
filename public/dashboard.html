@@ -15,198 +15,261 @@
   <link rel="stylesheet" href="/public/css/dashboard.css" />
 </head>
 <body>
-  <header class="header">
-    <div class="container header-inner">
-      <a href="/" class="logo">
+  <button type="button" class="menu-toggle" id="menuToggle" aria-label="Toggle menu">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+
+  <div class="overlay" id="overlay"></div>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="brand-logo-wrap">
         <img src="https://i.ibb.co/YJYrcxZ/sha3bytk.png" alt="Sha3bytk" draggable="false" />
-        <div class="logo-text">
-          <strong>Sha3bytk</strong>
-          <span data-i18n="tagline">بيع • اشتري • شعبيتك</span>
-        </div>
-      </a>
-
-      <div class="header-actions">
-        <nav class="header-nav">
-          <a href="/buy" class="nav-link" data-i18n="navBuy">شراء</a>
-          <a href="/sale" class="nav-link" data-i18n="navSale">بيع</a>
-          <a href="/warranty-images" class="nav-link" data-i18n="navWarranty">صور ضمان</a>
-        </nav>
-
-        <div class="header-tools">
-          <button type="button" class="theme-btn" id="themeBtn" aria-label="Toggle theme">Dark</button>
-          <button type="button" class="lang-btn" id="langBtn" aria-label="Switch language">EN</button>
-          <button type="button" class="logout-btn" id="logoutBtn" data-i18n="logout">خروج</button>
-        </div>
       </div>
+      <h1 class="brand-name">Sha3bytk</h1>
+      <p class="brand-tag" data-i18n="tagline">بيع • اشتري • شعبيتك</p>
     </div>
-  </header>
 
-  <main>
-    <section class="page-head">
-      <div class="container">
-        <span class="page-badge" data-i18n="badge">لوحة الإدارة</span>
-        <h1 data-i18n="title">إدارة الطلبات</h1>
-        <p data-i18n="sub">تابع كل طلبات البيع والشراء وحدّث حالاتها.</p>
+    <nav class="sidebar-nav">
+      <button type="button" class="side-link" data-view="buy">
+        <span class="side-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 6h15l-1.5 9h-12z" />
+            <circle cx="9" cy="20" r="1.5" />
+            <circle cx="18" cy="20" r="1.5" />
+            <path d="M6 6 5 3H2" />
+          </svg>
+        </span>
+        <span class="side-label" data-i18n="navBuy">شراء</span>
+      </button>
+
+      <button type="button" class="side-link" data-view="sale">
+        <span class="side-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v20" />
+            <path d="M17 7H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+          </svg>
+        </span>
+        <span class="side-label" data-i18n="navSale">بيع</span>
+      </button>
+
+      <button type="button" class="side-link" data-view="warranty">
+        <span class="side-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <path d="m21 15-5-5L5 21" />
+          </svg>
+        </span>
+        <span class="side-label" data-i18n="navWarranty">صور ضمان</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="side-tools">
+        <button type="button" class="tool-btn" id="themeBtn" aria-label="Toggle theme">Dark</button>
+        <button type="button" class="tool-btn" id="langBtn" aria-label="Switch language">EN</button>
+      </div>
+      <button type="button" class="logout-btn" id="logoutBtn">
+        <span class="side-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+            <polyline points="16 17 21 12 16 7" />
+            <line x1="21" y1="12" x2="9" y2="12" />
+          </svg>
+        </span>
+        <span data-i18n="logout">تسجيل الخروج</span>
+      </button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <section class="view" id="viewBuy" hidden>
+      <header class="view-head">
+        <div>
+          <h2 data-i18n="buyTitle">طلبات الشراء</h2>
+          <p data-i18n="buySub">تابع كل طلبات الشراء القادمة من المستخدمين.</p>
+        </div>
+      </header>
+
+      <div class="stats-grid" id="buyStats">
+        <div class="stat">
+          <span class="stat-label" data-i18n="statTotalBuy">إجمالي الشراء</span>
+          <span class="stat-value" id="statBuyTotal">0</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label" data-i18n="statPending">قيد الانتظار</span>
+          <span class="stat-value" id="statBuyPending">0</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label" data-i18n="statCompleted">مكتملة</span>
+          <span class="stat-value" id="statBuyCompleted">0</span>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <input
+          type="text"
+          id="buySearchInput"
+          class="toolbar-input"
+          placeholder="ابحث بالاسم / الهاتف / رقم الطلب"
+          data-i18n-ph="searchPh"
+        />
+        <select id="buyStatusFilter" class="toolbar-select">
+          <option value="" data-i18n="filterAll">كل الحالات</option>
+          <option value="pending" data-i18n="statusPending">قيد الانتظار</option>
+          <option value="processing" data-i18n="statusProcessing">قيد المعالجة</option>
+          <option value="completed" data-i18n="statusCompleted">مكتمل</option>
+          <option value="cancelled" data-i18n="statusCancelled">ملغي</option>
+        </select>
+        <button type="button" class="refresh-btn" id="buyRefreshBtn" data-i18n="refresh">تحديث</button>
+      </div>
+
+      <div class="panel">
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th data-i18n="thId">الطلب</th>
+                <th data-i18n="thName">الاسم</th>
+                <th data-i18n="thGameName">اسم اللعبة</th>
+                <th data-i18n="thPubgId">PUBG ID</th>
+                <th data-i18n="thPhone">الهاتف</th>
+                <th data-i18n="thAmount">الكمية</th>
+                <th data-i18n="thType">النوع</th>
+                <th data-i18n="thStatus">الحالة</th>
+                <th data-i18n="thDate">التاريخ</th>
+                <th data-i18n="thActions">إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="buyBody"></tbody>
+          </table>
+        </div>
+        <div class="empty" id="buyEmpty" hidden data-i18n="empty">لا توجد طلبات</div>
       </div>
     </section>
 
-    <section class="stats-wrap">
-      <div class="container">
-        <div class="stats-grid">
-          <div class="stat">
-            <span class="stat-label" data-i18n="statTotal">إجمالي الطلبات</span>
-            <span class="stat-value" id="statTotal">0</span>
-          </div>
-          <div class="stat">
-            <span class="stat-label" data-i18n="statBuy">طلبات الشراء</span>
-            <span class="stat-value" id="statBuy">0</span>
-          </div>
-          <div class="stat">
-            <span class="stat-label" data-i18n="statSale">طلبات البيع</span>
-            <span class="stat-value" id="statSale">0</span>
-          </div>
-          <div class="stat">
-            <span class="stat-label" data-i18n="statPending">قيد الانتظار</span>
-            <span class="stat-value" id="statPending">0</span>
-          </div>
-          <div class="stat">
-            <span class="stat-label" data-i18n="statCompleted">مكتملة</span>
-            <span class="stat-value" id="statCompleted">0</span>
-          </div>
+    <section class="view" id="viewSale" hidden>
+      <header class="view-head">
+        <div>
+          <h2 data-i18n="saleTitle">طلبات البيع</h2>
+          <p data-i18n="saleSub">تابع كل طلبات البيع القادمة من المستخدمين.</p>
         </div>
+      </header>
+
+      <div class="stats-grid" id="saleStats">
+        <div class="stat">
+          <span class="stat-label" data-i18n="statTotalSale">إجمالي البيع</span>
+          <span class="stat-value" id="statSaleTotal">0</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label" data-i18n="statPending">قيد الانتظار</span>
+          <span class="stat-value" id="statSalePending">0</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label" data-i18n="statCompleted">مكتملة</span>
+          <span class="stat-value" id="statSaleCompleted">0</span>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <input
+          type="text"
+          id="saleSearchInput"
+          class="toolbar-input"
+          placeholder="ابحث بالاسم / الهاتف / رقم الطلب"
+          data-i18n-ph="searchPh"
+        />
+        <select id="saleStatusFilter" class="toolbar-select">
+          <option value="" data-i18n="filterAll">كل الحالات</option>
+          <option value="pending" data-i18n="statusPending">قيد الانتظار</option>
+          <option value="processing" data-i18n="statusProcessing">قيد المعالجة</option>
+          <option value="completed" data-i18n="statusCompleted">مكتمل</option>
+          <option value="cancelled" data-i18n="statusCancelled">ملغي</option>
+        </select>
+        <button type="button" class="refresh-btn" id="saleRefreshBtn" data-i18n="refresh">تحديث</button>
+      </div>
+
+      <div class="panel">
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th data-i18n="thId">الطلب</th>
+                <th data-i18n="thName">الاسم</th>
+                <th data-i18n="thPhone">الهاتف</th>
+                <th data-i18n="thType">النوع</th>
+                <th data-i18n="thCardName">اسم الكارت</th>
+                <th data-i18n="thAmount">الكمية</th>
+                <th data-i18n="thStatus">الحالة</th>
+                <th data-i18n="thDate">التاريخ</th>
+                <th data-i18n="thActions">إجراءات</th>
+              </tr>
+            </thead>
+            <tbody id="saleBody"></tbody>
+          </table>
+        </div>
+        <div class="empty" id="saleEmpty" hidden data-i18n="empty">لا توجد طلبات</div>
       </div>
     </section>
 
-    <section class="tables-wrap">
-      <div class="container">
-        <div class="toolbar">
-          <input
-            type="text"
-            id="searchInput"
-            class="toolbar-input"
-            placeholder="ابحث بالاسم / الهاتف / رقم الطلب"
-            data-i18n-ph="searchPh"
-          />
-          <select id="statusFilter" class="toolbar-select">
-            <option value="" data-i18n="filterAll">كل الحالات</option>
-            <option value="pending" data-i18n="statusPending">قيد الانتظار</option>
-            <option value="processing" data-i18n="statusProcessing">قيد المعالجة</option>
-            <option value="completed" data-i18n="statusCompleted">مكتمل</option>
-            <option value="cancelled" data-i18n="statusCancelled">ملغي</option>
-          </select>
-          <button type="button" class="refresh-btn" id="refreshBtn" data-i18n="refresh">تحديث</button>
+    <section class="view" id="viewWarranty" hidden>
+      <header class="view-head">
+        <div>
+          <h2 data-i18n="warrantyTitle">صور الضمان</h2>
+          <p data-i18n="warrantySub">ارفع صور الضمانات هنا لتظهر في صفحة الضمانات العامة.</p>
         </div>
+      </header>
 
-        <div class="tabs">
-          <button type="button" class="tab active" data-tab="buy" data-i18n="tabBuy">طلبات الشراء</button>
-          <button type="button" class="tab" data-tab="sale" data-i18n="tabSale">طلبات البيع</button>
-        </div>
-
-        <div class="panel" id="panelBuy">
-          <div class="table-wrap">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th data-i18n="thId">الطلب</th>
-                  <th data-i18n="thName">الاسم</th>
-                  <th data-i18n="thGameName">اسم اللعبة</th>
-                  <th data-i18n="thPubgId">PUBG ID</th>
-                  <th data-i18n="thPhone">الهاتف</th>
-                  <th data-i18n="thAmount">الكمية</th>
-                  <th data-i18n="thType">النوع</th>
-                  <th data-i18n="thStatus">الحالة</th>
-                  <th data-i18n="thDate">التاريخ</th>
-                  <th data-i18n="thActions">إجراءات</th>
-                </tr>
-              </thead>
-              <tbody id="buyBody"></tbody>
-            </table>
+      <form id="warrantyForm" class="warranty-form" novalidate>
+        <div class="warranty-form-grid">
+          <div class="field">
+            <label for="warrantyTitle" data-i18n="warrantyFieldTitle">العنوان (اختياري)</label>
+            <input type="text" id="warrantyTitle" name="title" maxlength="120" />
           </div>
-          <div class="empty" id="buyEmpty" hidden data-i18n="empty">لا توجد طلبات</div>
+
+          <div class="field">
+            <label for="warrantyNote" data-i18n="warrantyFieldNote">ملاحظة (اختياري)</label>
+            <input type="text" id="warrantyNote" name="note" maxlength="300" />
+          </div>
+
+          <div class="field">
+            <label for="warrantyImages" data-i18n="warrantyFieldImages">الصور (حتى 10 صور)</label>
+            <input
+              type="file"
+              id="warrantyImages"
+              name="images"
+              accept="image/jpeg,image/jpg,image/png,image/webp"
+              multiple
+            />
+            <span class="hint" data-i18n="warrantyHint">الحد الأقصى 5MB لكل صورة</span>
+          </div>
         </div>
 
-        <div class="panel" id="panelSale" hidden>
-          <div class="table-wrap">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th data-i18n="thId">الطلب</th>
-                  <th data-i18n="thName">الاسم</th>
-                  <th data-i18n="thPhone">الهاتف</th>
-                  <th data-i18n="thType">النوع</th>
-                  <th data-i18n="thCardName">اسم الكارت</th>
-                  <th data-i18n="thAmount">الكمية</th>
-                  <th data-i18n="thStatus">الحالة</th>
-                  <th data-i18n="thDate">التاريخ</th>
-                  <th data-i18n="thActions">إجراءات</th>
-                </tr>
-              </thead>
-              <tbody id="saleBody"></tbody>
-            </table>
-          </div>
-          <div class="empty" id="saleEmpty" hidden data-i18n="empty">لا توجد طلبات</div>
+        <div class="warranty-actions">
+          <button type="submit" class="btn-primary" id="warrantyUploadBtn" data-i18n="warrantyUpload">
+            رفع الصور
+          </button>
         </div>
+
+        <div class="form-msg" id="warrantyMsg"></div>
+      </form>
+
+      <div class="toolbar">
+        <input
+          type="text"
+          id="warrantySearchInput"
+          class="toolbar-input"
+          placeholder="ابحث في صور الضمان"
+          data-i18n-ph="warrantySearchPh"
+        />
+        <button type="button" class="refresh-btn" id="warrantyRefreshBtn" data-i18n="refresh">تحديث</button>
       </div>
-    </section>
 
-    <section class="warranty-section">
-      <div class="container">
-        <div class="section-head">
-          <div>
-            <h2 data-i18n="warrantyTitle">صور الضمان</h2>
-            <p data-i18n="warrantySub">ارفع صور الضمانات هنا لتظهر في صفحة الضمانات العامة.</p>
-          </div>
-          <a href="/warranty-images" class="back-btn" data-i18n="warrantyPageBtn">صور الضمان</a>
-        </div>
-
-        <form id="warrantyForm" class="warranty-form" novalidate>
-          <div class="warranty-form-grid">
-            <div class="field">
-              <label for="warrantyTitle" data-i18n="warrantyFieldTitle">العنوان (اختياري)</label>
-              <input type="text" id="warrantyTitle" name="title" maxlength="120" />
-            </div>
-
-            <div class="field">
-              <label for="warrantyNote" data-i18n="warrantyFieldNote">ملاحظة (اختياري)</label>
-              <input type="text" id="warrantyNote" name="note" maxlength="300" />
-            </div>
-
-            <div class="field">
-              <label for="warrantyImages" data-i18n="warrantyFieldImages">الصور (حتى 10 صور)</label>
-              <input
-                type="file"
-                id="warrantyImages"
-                name="images"
-                accept="image/jpeg,image/jpg,image/png,image/webp"
-                multiple
-              />
-              <span class="hint" data-i18n="warrantyHint">الحد الأقصى 5MB لكل صورة</span>
-            </div>
-          </div>
-
-          <div class="form-actions warranty-actions">
-            <button type="submit" class="btn-primary" id="warrantyUploadBtn" data-i18n="warrantyUpload">
-              رفع الصور
-            </button>
-          </div>
-
-          <div class="form-msg" id="warrantyMsg"></div>
-        </form>
-
-        <div class="warranty-toolbar">
-          <input
-            type="text"
-            id="warrantySearchInput"
-            class="toolbar-input"
-            placeholder="ابحث في صور الضمان"
-            data-i18n-ph="warrantySearchPh"
-          />
-          <button type="button" class="refresh-btn" id="warrantyRefreshBtn" data-i18n="refresh">تحديث</button>
-        </div>
-
-        <div class="warranty-grid" id="warrantyGrid"></div>
-        <div class="empty" id="warrantyEmpty" hidden data-i18n="warrantyEmpty">لا توجد صور ضمان بعد</div>
-      </div>
+      <div class="warranty-grid" id="warrantyGrid"></div>
+      <div class="empty" id="warrantyEmpty" hidden data-i18n="warrantyEmpty">لا توجد صور ضمان بعد</div>
     </section>
   </main>
 
@@ -241,15 +304,6 @@
       </div>
     </div>
   </div>
-
-  <footer class="footer">
-    <div class="container">
-      <p>
-        &copy; <span id="year"></span> Sha3bytk.
-        <span data-i18n="rights">جميع الحقوق محفوظة.</span>
-      </p>
-    </div>
-  </footer>
 
   <script src="/public/js/dashboard.js" defer></script>
 </body>
