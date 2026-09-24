@@ -27,6 +27,7 @@
       title: 'Sha3bytk | لوحة التحكم',
       tagline: 'بيع • اشتري • شعبيتك',
       siteBtn: 'الموقع',
+      warrantyPageBtn: 'صور الضمان',
       logout: 'خروج',
       badge: 'لوحة الإدارة',
       title2: 'إدارة الطلبات',
@@ -80,12 +81,32 @@
       unauthorized: 'انتهت الجلسة. من فضلك سجّل الدخول مرة أخرى.',
       logoutConfirm: 'هل تريد تسجيل الخروج؟',
       rights: 'جميع الحقوق محفوظة.',
+
+      warrantyTitle: 'صور الضمان',
+      warrantySub: 'ارفع صور الضمانات هنا لتظهر في صفحة الضمانات العامة.',
+      warrantyFieldTitle: 'العنوان (اختياري)',
+      warrantyFieldNote: 'ملاحظة (اختياري)',
+      warrantyFieldImages: 'الصور (حتى 10 صور)',
+      warrantyHint: 'الحد الأقصى 5MB لكل صورة',
+      warrantyUpload: 'رفع الصور',
+      warrantyUploading: 'جارٍ الرفع...',
+      warrantySearchPh: 'ابحث في صور الضمان',
+      warrantyEmpty: 'لا توجد صور ضمان بعد',
+      warrantyUploadOk: 'تم رفع الصور بنجاح',
+      warrantyUploadFail: 'فشل رفع الصور. حاول مرة أخرى.',
+      warrantyNoFiles: 'من فضلك اختر صورة واحدة على الأقل.',
+      warrantyDeleteConfirm: 'هل أنت متأكد من حذف هذه الصورة؟',
+      warrantyDeleted: 'تم حذف الصورة بنجاح',
+      warrantyDeleteFailed: 'فشل حذف الصورة',
+      warrantyLoadFail: 'فشل تحميل صور الضمان',
+      warrantyNoTitle: 'بدون عنوان',
     },
     en: {
       dir: 'ltr', lang: 'en', switchLabel: 'AR',
       title: 'Sha3bytk | Dashboard',
       tagline: 'Sell • Buy • Your Popularity',
       siteBtn: 'Site',
+      warrantyPageBtn: 'Warranty Images',
       logout: 'Logout',
       badge: 'Admin Panel',
       title2: 'Orders Management',
@@ -139,11 +160,31 @@
       unauthorized: 'Session expired. Please sign in again.',
       logoutConfirm: 'Do you want to logout?',
       rights: 'All rights reserved.',
+
+      warrantyTitle: 'Warranty Images',
+      warrantySub: 'Upload warranty images here to show them on the public warranty page.',
+      warrantyFieldTitle: 'Title (optional)',
+      warrantyFieldNote: 'Note (optional)',
+      warrantyFieldImages: 'Images (up to 10)',
+      warrantyHint: 'Max 5MB per image',
+      warrantyUpload: 'Upload images',
+      warrantyUploading: 'Uploading...',
+      warrantySearchPh: 'Search warranty images',
+      warrantyEmpty: 'No warranty images yet',
+      warrantyUploadOk: 'Images uploaded successfully',
+      warrantyUploadFail: 'Failed to upload images. Please try again.',
+      warrantyNoFiles: 'Please select at least one image.',
+      warrantyDeleteConfirm: 'Are you sure you want to delete this image?',
+      warrantyDeleted: 'Image deleted successfully',
+      warrantyDeleteFailed: 'Failed to delete the image',
+      warrantyLoadFail: 'Failed to load warranty images',
+      warrantyNoTitle: 'Untitled',
     },
   };
 
   let currentLang = 'ar';
   let ordersCache = [];
+  let warrantyCache = [];
   let activeTab = 'buy';
   let currentOrderId = null;
 
@@ -192,6 +233,7 @@
     applyTheme(theme);
 
     renderAll();
+    renderWarranty();
   };
 
   const escapeHtml = (s) =>
@@ -243,10 +285,14 @@
   const apiFetch = async (path, options = {}) => {
     const token = getToken();
     const headers = Object.assign(
-      { 'Content-Type': 'application/json' },
+      {},
       options.headers || {},
       token ? { Authorization: `Bearer ${token}` } : {}
     );
+
+    if (!(options.body instanceof FormData)) {
+      headers['Content-Type'] = 'application/json';
+    }
 
     const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
 
@@ -262,6 +308,7 @@
     return data;
   };
 
+  /* ============ Orders ============ */
   const loadOrders = async () => {
     try {
       const data = await apiFetch('/api/admin/orders');
@@ -297,12 +344,7 @@
       if (!q) return true;
 
       const hay = [
-        o.id,
-        o.name,
-        o.phone,
-        o.gameName,
-        o.pubgId,
-        o.cardName,
+        o.id, o.name, o.phone, o.gameName, o.pubgId, o.cardName,
       ].filter(Boolean).join(' ').toLowerCase();
 
       return hay.includes(q);
@@ -502,6 +544,143 @@
     }
   };
 
+  /* ============ Warranty ============ */
+  const loadWarranty = async () => {
+    try {
+      const data = await apiFetch('/api/warranty');
+      warrantyCache = Array.isArray(data.items) ? data.items : [];
+      renderWarranty();
+    } catch (err) {
+      if (err.message !== 'Unauthorized') alert(t('warrantyLoadFail'));
+    }
+  };
+
+  const filteredWarranty = () => {
+    const q = (document.getElementById('warrantySearchInput')?.value || '').trim().toLowerCase();
+    if (!q) return warrantyCache;
+
+    return warrantyCache.filter((it) => {
+      const hay = [it.title, it.note].filter(Boolean).join(' ').toLowerCase();
+      return hay.includes(q);
+    });
+  };
+
+  const renderWarranty = () => {
+    const grid = document.getElementById('warrantyGrid');
+    const empty = document.getElementById('warrantyEmpty');
+    if (!grid) return;
+
+    const items = filteredWarranty();
+
+    grid.innerHTML = items
+      .map((it) => {
+        const title = it.title && it.title.trim() ? it.title : t('warrantyNoTitle');
+        const note = it.note && it.note.trim() ? it.note : '';
+        const date = it.createdAt ? formatDate(it.createdAt) : '';
+
+        return `
+          <div class="warranty-card">
+            <div class="warranty-thumb" data-wzoom="${escapeAttr(it.imageUrl || '')}">
+              <img src="${escapeAttr(it.imageUrl || '')}" alt="warranty" loading="lazy" draggable="false" />
+            </div>
+            <div class="warranty-body">
+              <div class="warranty-title">${escapeHtml(title)}</div>
+              ${note ? `<div class="warranty-note">${escapeHtml(note)}</div>` : ''}
+              ${date ? `<div class="warranty-date">${escapeHtml(date)}</div>` : ''}
+            </div>
+            <div class="warranty-actions-row">
+              <button type="button" class="del-btn" data-wdel="${escapeAttr(it.id || '')}">
+                ${escapeHtml(t('delete'))}
+              </button>
+            </div>
+          </div>
+        `;
+      })
+      .join('');
+
+    if (empty) empty.hidden = items.length !== 0;
+  };
+
+  const uploadWarranty = async (e) => {
+    e.preventDefault();
+
+    const input = document.getElementById('warrantyImages');
+    const titleInput = document.getElementById('warrantyTitle');
+    const noteInput = document.getElementById('warrantyNote');
+    const btn = document.getElementById('warrantyUploadBtn');
+    const msg = document.getElementById('warrantyMsg');
+
+    if (!input || !input.files || input.files.length === 0) {
+      if (msg) {
+        msg.textContent = t('warrantyNoFiles');
+        msg.classList.remove('success');
+        msg.classList.add('error');
+      }
+      return;
+    }
+
+    const fd = new FormData();
+    for (const f of input.files) fd.append('images', f);
+    if (titleInput && titleInput.value.trim()) fd.append('title', titleInput.value.trim());
+    if (noteInput && noteInput.value.trim()) fd.append('note', noteInput.value.trim());
+
+    const original = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = t('warrantyUploading');
+    if (msg) {
+      msg.textContent = '';
+      msg.classList.remove('success', 'error');
+    }
+
+    try {
+      await apiFetch('/api/admin/warranty', {
+        method: 'POST',
+        body: fd,
+      });
+
+      input.value = '';
+      if (titleInput) titleInput.value = '';
+      if (noteInput) noteInput.value = '';
+
+      if (msg) {
+        msg.textContent = t('warrantyUploadOk');
+        msg.classList.remove('error');
+        msg.classList.add('success');
+      }
+
+      await loadWarranty();
+    } catch (err) {
+      if (err.message !== 'Unauthorized') {
+        if (msg) {
+          msg.textContent = err.message || t('warrantyUploadFail');
+          msg.classList.remove('success');
+          msg.classList.add('error');
+        }
+      }
+    } finally {
+      btn.disabled = false;
+      btn.textContent = original;
+    }
+  };
+
+  const deleteWarranty = async (id) => {
+    if (!id) return;
+    if (!confirm(t('warrantyDeleteConfirm'))) return;
+
+    try {
+      await apiFetch(`/api/admin/warranty/${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      });
+
+      warrantyCache = warrantyCache.filter((it) => it.id !== id);
+      renderWarranty();
+      alert(t('warrantyDeleted'));
+    } catch (err) {
+      if (err.message !== 'Unauthorized') alert(t('warrantyDeleteFailed'));
+    }
+  };
+
+  /* ============ Events ============ */
   const bindEvents = () => {
     const yearEl = document.getElementById('year');
     if (yearEl) yearEl.textContent = new Date().getFullYear();
@@ -579,9 +758,25 @@
         return;
       }
 
+      const wdelBtn = target.closest('[data-wdel]');
+      if (wdelBtn) {
+        const id = wdelBtn.getAttribute('data-wdel');
+        if (id) deleteWarranty(id);
+        return;
+      }
+
       const zoomImg = target.closest('[data-zoom]');
       if (zoomImg) {
         const url = zoomImg.getAttribute('data-zoom');
+        const large = document.getElementById('imgLarge');
+        if (large && url) large.src = url;
+        openModal('imgModal');
+        return;
+      }
+
+      const wZoom = target.closest('[data-wzoom]');
+      if (wZoom) {
+        const url = wZoom.getAttribute('data-wzoom');
         const large = document.getElementById('imgLarge');
         if (large && url) large.src = url;
         openModal('imgModal');
@@ -613,6 +808,15 @@
       if (panelBuy) panelBuy.hidden = true;
       if (panelSale) panelSale.hidden = false;
     }
+
+    const warrantyForm = document.getElementById('warrantyForm');
+    if (warrantyForm) warrantyForm.addEventListener('submit', uploadWarranty);
+
+    const warrantySearchInput = document.getElementById('warrantySearchInput');
+    if (warrantySearchInput) warrantySearchInput.addEventListener('input', renderWarranty);
+
+    const warrantyRefreshBtn = document.getElementById('warrantyRefreshBtn');
+    if (warrantyRefreshBtn) warrantyRefreshBtn.addEventListener('click', loadWarranty);
   };
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -626,5 +830,6 @@
 
     bindEvents();
     loadOrders();
+    loadWarranty();
   });
 })();
