@@ -56,6 +56,10 @@
       detailsTitle: 'تفاصيل الطلب',
       changeStatus: 'تغيير الحالة',
       save: 'حفظ',
+      delete: 'حذف',
+      deleteConfirm: 'هل أنت متأكد من حذف هذا الطلب؟ لا يمكن التراجع.',
+      deleted: 'تم حذف الطلب بنجاح',
+      deleteFailed: 'فشل حذف الطلب',
       imagePreview: 'معاينة الصورة',
       statusPending: 'قيد الانتظار',
       statusProcessing: 'قيد المعالجة',
@@ -111,6 +115,10 @@
       detailsTitle: 'Order Details',
       changeStatus: 'Change status',
       save: 'Save',
+      delete: 'Delete',
+      deleteConfirm: 'Are you sure you want to delete this order? This cannot be undone.',
+      deleted: 'Order deleted successfully',
+      deleteFailed: 'Failed to delete the order',
       imagePreview: 'Image preview',
       statusPending: 'Pending',
       statusProcessing: 'Processing',
@@ -476,6 +484,34 @@
     }
   };
 
+  const deleteOrder = async () => {
+    if (!currentOrderId) return;
+    const btn = document.getElementById('deleteOrderBtn');
+    if (!btn) return;
+
+    if (!confirm(t('deleteConfirm'))) return;
+
+    const original = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '...';
+
+    try {
+      await apiFetch(`/api/admin/orders/${encodeURIComponent(currentOrderId)}`, {
+        method: 'DELETE',
+      });
+
+      ordersCache = ordersCache.filter((o) => o.id !== currentOrderId);
+      renderAll();
+      closeModal('detailsModal');
+      alert(t('deleted'));
+    } catch (err) {
+      if (err.message !== 'Unauthorized') alert(t('deleteFailed'));
+    } finally {
+      btn.disabled = false;
+      btn.textContent = original;
+    }
+  };
+
   const bindEvents = () => {
     const yearEl = document.getElementById('year');
     if (yearEl) yearEl.textContent = new Date().getFullYear();
@@ -563,6 +599,9 @@
 
     const saveStatusBtn = document.getElementById('saveStatusBtn');
     if (saveStatusBtn) saveStatusBtn.addEventListener('click', saveStatus);
+
+    const deleteOrderBtn = document.getElementById('deleteOrderBtn');
+    if (deleteOrderBtn) deleteOrderBtn.addEventListener('click', deleteOrder);
 
     document.querySelectorAll('.modal').forEach((m) => {
       m.addEventListener('click', (e) => {
