@@ -51,15 +51,16 @@
       thCardName: 'اسم الكارت',
       thStatus: 'الحالة',
       thDate: 'التاريخ',
+      thActions: 'إجراءات',
       empty: 'لا توجد طلبات',
       view: 'عرض',
-      detailsTitle: 'تفاصيل الطلب',
-      changeStatus: 'تغيير الحالة',
-      save: 'حفظ',
       delete: 'حذف',
       deleteConfirm: 'هل أنت متأكد من حذف هذا الطلب؟ لا يمكن التراجع.',
       deleted: 'تم حذف الطلب بنجاح',
       deleteFailed: 'فشل حذف الطلب',
+      detailsTitle: 'تفاصيل الطلب',
+      changeStatus: 'تغيير الحالة',
+      save: 'حفظ',
       imagePreview: 'معاينة الصورة',
       statusPending: 'قيد الانتظار',
       statusProcessing: 'قيد المعالجة',
@@ -71,7 +72,6 @@
       orderType: 'نوع الطلب',
       buyerType: 'شراء',
       sellerType: 'بيع',
-      cardImage: 'صورة الكارت',
       details: 'تفاصيل إضافية',
       noData: '—',
       updated: 'تم تحديث حالة الطلب',
@@ -110,15 +110,16 @@
       thCardName: 'Card Name',
       thStatus: 'Status',
       thDate: 'Date',
+      thActions: 'Actions',
       empty: 'No orders found',
       view: 'View',
-      detailsTitle: 'Order Details',
-      changeStatus: 'Change status',
-      save: 'Save',
       delete: 'Delete',
       deleteConfirm: 'Are you sure you want to delete this order? This cannot be undone.',
       deleted: 'Order deleted successfully',
       deleteFailed: 'Failed to delete the order',
+      detailsTitle: 'Order Details',
+      changeStatus: 'Change status',
+      save: 'Save',
       imagePreview: 'Image preview',
       statusPending: 'Pending',
       statusProcessing: 'Processing',
@@ -130,7 +131,6 @@
       orderType: 'Order Type',
       buyerType: 'Buy',
       sellerType: 'Sell',
-      cardImage: 'Card Image',
       details: 'Details',
       noData: '—',
       updated: 'Order status updated',
@@ -309,6 +309,15 @@
     });
   };
 
+  const actionButtons = (id) => `
+    <button type="button" class="view-btn" data-view="${escapeAttr(id)}">
+      ${escapeHtml(t('view'))}
+    </button>
+    <button type="button" class="del-btn" data-del="${escapeAttr(id)}">
+      ${escapeHtml(t('delete'))}
+    </button>
+  `;
+
   const renderBuyTable = () => {
     const body = document.getElementById('buyBody');
     const empty = document.getElementById('buyEmpty');
@@ -332,11 +341,7 @@
             <td>${escapeHtml(typeLabel(o.popularityType))}</td>
             <td>${statusBadge(o.status)}</td>
             <td class="cell-muted">${escapeHtml(formatDate(o.createdAt))}</td>
-            <td>
-              <button type="button" class="view-btn" data-view="${escapeAttr(o.id || '')}">
-                ${escapeHtml(t('view'))}
-              </button>
-            </td>
+            <td class="cell-actions">${actionButtons(o.id || '')}</td>
           </tr>
         `;
       })
@@ -367,11 +372,7 @@
             <td>${escapeHtml(amount)}</td>
             <td>${statusBadge(o.status)}</td>
             <td class="cell-muted">${escapeHtml(formatDate(o.createdAt))}</td>
-            <td>
-              <button type="button" class="view-btn" data-view="${escapeAttr(o.id || '')}">
-                ${escapeHtml(t('view'))}
-              </button>
-            </td>
+            <td class="cell-actions">${actionButtons(o.id || '')}</td>
           </tr>
         `;
       })
@@ -484,31 +485,20 @@
     }
   };
 
-  const deleteOrder = async () => {
-    if (!currentOrderId) return;
-    const btn = document.getElementById('deleteOrderBtn');
-    if (!btn) return;
-
+  const deleteOrder = async (orderId) => {
+    if (!orderId) return;
     if (!confirm(t('deleteConfirm'))) return;
 
-    const original = btn.textContent;
-    btn.disabled = true;
-    btn.textContent = '...';
-
     try {
-      await apiFetch(`/api/admin/orders/${encodeURIComponent(currentOrderId)}`, {
+      await apiFetch(`/api/admin/orders/${encodeURIComponent(orderId)}`, {
         method: 'DELETE',
       });
 
-      ordersCache = ordersCache.filter((o) => o.id !== currentOrderId);
+      ordersCache = ordersCache.filter((o) => o.id !== orderId);
       renderAll();
-      closeModal('detailsModal');
       alert(t('deleted'));
     } catch (err) {
       if (err.message !== 'Unauthorized') alert(t('deleteFailed'));
-    } finally {
-      btn.disabled = false;
-      btn.textContent = original;
     }
   };
 
@@ -582,6 +572,13 @@
         return;
       }
 
+      const delBtn = target.closest('[data-del]');
+      if (delBtn) {
+        const id = delBtn.getAttribute('data-del');
+        if (id) deleteOrder(id);
+        return;
+      }
+
       const zoomImg = target.closest('[data-zoom]');
       if (zoomImg) {
         const url = zoomImg.getAttribute('data-zoom');
@@ -599,9 +596,6 @@
 
     const saveStatusBtn = document.getElementById('saveStatusBtn');
     if (saveStatusBtn) saveStatusBtn.addEventListener('click', saveStatus);
-
-    const deleteOrderBtn = document.getElementById('deleteOrderBtn');
-    if (deleteOrderBtn) deleteOrderBtn.addEventListener('click', deleteOrder);
 
     document.querySelectorAll('.modal').forEach((m) => {
       m.addEventListener('click', (e) => {
