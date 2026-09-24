@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sha3bytk | بيع وشراء شعبية PUBG</title>
+  <meta name="description" content="Sha3bytk - منصة بيع وشراء شعبية PUBG" />
+  <link rel="icon" type="image/png" href="https://i.ibb.co/YJYrcxZ/sha3bytk.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="/public/css/home.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="container header-inner">
+      <a href="/" class="logo">
+        <img src="https://i.ibb.co/YJYrcxZ/sha3bytk.png" alt="Sha3bytk" draggable="false" />
+        <div class="logo-text">
+          <strong>Sha3bytk</strong>
+          <span data-i18n="tagline">بيع • اشتري • شعبيتك</span>
+        </div>
+      </a>
+
+      <div class="header-actions">
+        <button type="button" class="theme-btn" id="themeBtn" aria-label="Toggle theme">Dark</button>
+        <button type="button" class="lang-btn" id="langBtn" aria-label="Switch language">EN</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <span class="hero-badge" data-i18n="badge">منصة شعبية PUBG</span>
+        <h1 data-i18n="heroTitle">منصة بيع وشراء شعبية PUBG</h1>
+        <p data-i18n="heroSub">
+          اختر ما تريد: شراء شعبية من الإدارة، أو بيع شعبيتك للإدارة.
+          كل الطلبات بتوصل مباشرة ويتم التواصل معاك على واتساب.
+        </p>
+      </div>
+    </section>
+
+    <section class="options">
+      <div class="container options-grid">
+        <a href="/buy" class="option option-buy">
+          <div class="option-top">
+            <span class="option-index">01</span>
+            <span class="option-tag" data-i18n="buyTag">شراء</span>
+          </div>
+          <h2 data-i18n="buyTitle">أريد شراء شعبية</h2>
+          <p data-i18n="buyDesc">
+            اطلب شعبية كارت أو متفرقات، وحدد الكمية والتفاصيل،
+            وهيتم التواصل معاك لتأكيد الطلب.
+          </p>
+          <span class="option-btn" data-i18n="buyBtn">انتقل لصفحة الشراء</span>
+        </a>
+
+        <a href="/sale" class="option option-sale">
+          <div class="option-top">
+            <span class="option-index">02</span>
+            <span class="option-tag" data-i18n="saleTag">بيع</span>
+          </div>
+          <h2 data-i18n="saleTitle">أريد بيع شعبية</h2>
+          <p data-i18n="saleDesc">
+            بِع شعبيتك كارت أو متفرقات، وفيه حاسبة سعر تجيبلك
+            السعر فوراً قبل ما تبعت الطلب.
+          </p>
+          <span class="option-btn" data-i18n="saleBtn">انتقل لصفحة البيع</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="features">
+      <div class="container features-grid">
+        <div class="feature">
+          <h3 data-i18n="f1Title">طلبات مباشرة</h3>
+          <p data-i18n="f1Desc">كل طلب بيوصل للإدارة فوراً برقم فريد للمتابعة.</p>
+        </div>
+        <div class="feature">
+          <h3 data-i18n="f2Title">تواصل واتساب</h3>
+          <p data-i18n="f2Desc">التواصل معاك على رقم الواتساب اللي بتسجله في الطلب.</p>
+        </div>
+        <div class="feature">
+          <h3 data-i18n="f3Title">حاسبة سعر</h3>
+          <p data-i18n="f3Desc">احسب سعر شعبيتك (كارت أو متفرقات) قبل البيع.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>
+        &copy; <span id="year"></span> Sha3bytk.
+        <span data-i18n="rights">جميع الحقوق محفوظة.</span>
+      </p>
+    </div>
+  </footer>
+
+  <script src="/public/js/home.js" defer></script>
+</body>
+</html>

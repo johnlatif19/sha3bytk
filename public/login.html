@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sha3bytk | دخول الإدارة</title>
+  <meta name="robots" content="noindex, nofollow" />
+  <link rel="icon" type="image/png" href="https://i.ibb.co/YJYrcxZ/sha3bytk.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="/public/css/login.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="container header-inner">
+      <a href="/" class="logo">
+        <img src="https://i.ibb.co/YJYrcxZ/sha3bytk.png" alt="Sha3bytk" draggable="false" />
+        <div class="logo-text">
+          <strong>Sha3bytk</strong>
+          <span data-i18n="tagline">بيع • اشتري • شعبيتك</span>
+        </div>
+      </a>
+
+      <div class="header-actions">
+        <a href="/" class="back-btn" data-i18n="back">رجوع</a>
+        <button type="button" class="theme-btn" id="themeBtn" aria-label="Toggle theme">Dark</button>
+        <button type="button" class="lang-btn" id="langBtn" aria-label="Switch language">EN</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="login-main">
+    <div class="container">
+      <div class="login-card">
+        <div class="login-head">
+          <span class="login-badge" data-i18n="badge">منطقة الإدارة</span>
+          <h1 data-i18n="title">تسجيل دخول الأدمن</h1>
+          <p data-i18n="sub">أدخل بياناتك للوصول إلى لوحة التحكم.</p>
+        </div>
+
+        <form id="loginForm" novalidate>
+          <div class="field">
+            <label for="username" data-i18n="lblUser">اسم المستخدم</label>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              autocomplete="username"
+              spellcheck="false"
+              required
+            />
+            <span class="err" data-err="username"></span>
+          </div>
+
+          <div class="field">
+            <label for="password" data-i18n="lblPass">كلمة المرور</label>
+            <div class="pass-wrap">
+              <input
+                type="password"
+                id="password"
+                name="password"
+                autocomplete="current-password"
+                required
+              />
+              <button type="button" class="pass-toggle" id="passToggle" aria-label="Toggle password">
+                <span id="passToggleText">إظهار</span>
+              </button>
+            </div>
+            <span class="err" data-err="password"></span>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn-primary" id="submitBtn" data-i18n="submit">
+              تسجيل الدخول
+            </button>
+          </div>
+
+          <div class="form-msg" id="formMsg"></div>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <p>
+        &copy; <span id="year"></span> Sha3bytk.
+        <span data-i18n="rights">جميع الحقوق محفوظة.</span>
+      </p>
+    </div>
+  </footer>
+
+  <script src="/public/js/login.js" defer></script>
+</body>
+</html>
