@@ -131,10 +131,38 @@ a { color: inherit; text-decoration: none; }
 .header-actions {
   display: flex;
   align-items: center;
+  gap: 14px;
+}
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.nav-link {
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-2);
+  padding: 8px 14px;
+  border-radius: 8px;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+}
+
+.nav-link:hover {
+  color: var(--gold-dark);
+  background: rgba(232, 178, 28, 0.08);
+  border-color: rgba(232, 178, 28, 0.25);
+}
+
+.header-tools {
+  display: flex;
+  align-items: center;
   gap: 8px;
 }
 
-.back-btn,
 .theme-btn,
 .lang-btn,
 .logout-btn {
@@ -151,7 +179,6 @@ a { color: inherit; text-decoration: none; }
   transition: all 0.15s ease;
 }
 
-.back-btn:hover,
 .theme-btn:hover,
 .lang-btn:hover {
   border-color: var(--gold);
@@ -450,7 +477,6 @@ html[data-theme="dark"] .badge-cancelled { color: var(--red); background: rgba(2
   font-weight: 600;
 }
 
-/* ===== Warranty Section ===== */
 .warranty-section {
   padding: 24px 0 64px;
 }
@@ -871,6 +897,11 @@ html[data-theme="dark"] .field input[type="file"]::file-selector-button {
   .stats-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
+@media (max-width: 860px) {
+  .header-inner { flex-wrap: wrap; height: auto; padding: 12px 0; }
+  .header-actions { width: 100%; justify-content: space-between; }
+}
+
 @media (max-width: 700px) {
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
   .warranty-form-grid { grid-template-columns: 1fr; }
@@ -878,12 +909,14 @@ html[data-theme="dark"] .field input[type="file"]::file-selector-button {
 
 @media (max-width: 560px) {
   .container { padding: 0 14px; }
-  .header-inner { height: 62px; gap: 8px; flex-wrap: wrap; }
   .logo img { width: 34px; height: 34px; }
   .logo-text strong { font-size: 15px; }
   .logo-text span { display: none; }
 
-  .back-btn, .theme-btn, .lang-btn, .logout-btn {
+  .header-nav { gap: 0; }
+  .nav-link { padding: 7px 10px; font-size: 12.5px; }
+
+  .theme-btn, .lang-btn, .logout-btn {
     padding: 6px 9px;
     font-size: 11.5px;
   }
