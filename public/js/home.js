@@ -38,6 +38,11 @@
       saleDesc:
         'بِع شعبيتك كارت أو متفرقات، وفيه حاسبة سعر تجيبلك السعر فوراً قبل ما تبعت الطلب.',
       saleBtn: 'انتقل لصفحة البيع',
+      warrantyTag: 'ضمانات',
+      warrantyTitle: 'الضمانات',
+      warrantyDesc:
+        'تصفح كل صور الضمانات السابقة الموثقة، واضغط على أي صورة لعرضها بحجم أكبر.',
+      warrantyBtn: 'انتقل لصفحة الضمانات',
       f1Title: 'طلبات مباشرة',
       f1Desc: 'كل طلب بيوصل للإدارة فوراً برقم فريد للمتابعة.',
       f2Title: 'تواصل واتساب',
@@ -64,6 +69,11 @@
       saleDesc:
         'Sell your card or misc popularity — with a built-in price calculator before you submit.',
       saleBtn: 'Go to Sell page',
+      warrantyTag: 'WARRANTY',
+      warrantyTitle: 'Warranty Images',
+      warrantyDesc:
+        'Browse all previously documented warranty images. Click any image to view it larger.',
+      warrantyBtn: 'Go to Warranty page',
       f1Title: 'Direct requests',
       f1Desc: 'Every order reaches the admin instantly with a unique ID.',
       f2Title: 'WhatsApp contact',
@@ -88,11 +98,7 @@
     else html.removeAttribute('data-theme');
 
     const btn = document.getElementById('themeBtn');
-    if (btn) {
-      btn.textContent = theme === 'dark'
-        ? (currentLang === 'ar' ? 'Light' : 'Light')
-        : (currentLang === 'ar' ? 'Dark' : 'Dark');
-    }
+    if (btn) btn.textContent = theme === 'dark' ? 'Light' : 'Dark';
   };
 
   const applyLang = (lang) => {
