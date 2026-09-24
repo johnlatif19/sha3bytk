@@ -15,9 +15,6 @@ const cloudinary = require('cloudinary').v2;
 const app = express();
 app.set('trust proxy', 1);
 
-/* ============================================================
- *  ENV VALIDATION
- * ============================================================ */
 const REQUIRED_ENV = [
   'ADMIN_USERNAME',
   'ADMIN_PASSWORD_HASH',
@@ -29,18 +26,14 @@ const REQUIRED_ENV = [
 ];
 const missing = REQUIRED_ENV.filter((k) => !process.env[k]);
 if (missing.length) {
-  console.error('❌ Missing ENV variables:', missing.join(', '));
+  console.error('Missing ENV variables:', missing.join(', '));
 }
 
-/* ============================================================
- *  FIREBASE INIT
- * ============================================================ */
 let db = null;
 try {
   if (process.env.FIREBASE_CONFIG) {
     let raw = process.env.FIREBASE_CONFIG.trim();
 
-    // دعم JSON عادي أو Base64
     let serviceAccount;
     try {
       serviceAccount = JSON.parse(raw);
@@ -48,7 +41,6 @@ try {
       serviceAccount = JSON.parse(Buffer.from(raw, 'base64').toString('utf8'));
     }
 
-    // إصلاح private_key إذا جاء بـ \n حرفية
     if (serviceAccount.private_key && serviceAccount.private_key.includes('\\n')) {
       serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
     }
@@ -59,15 +51,12 @@ try {
       });
     }
     db = admin.firestore();
-    console.log('✅ Firebase initialized');
+    console.log('Firebase initialized');
   }
 } catch (err) {
-  console.error('❌ Firebase init error:', err.message);
+  console.error('Firebase init error:', err.message);
 }
 
-/* ============================================================
- *  CLOUDINARY INIT
- * ============================================================ */
 try {
   cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -75,33 +64,26 @@ try {
     api_secret: process.env.CLOUDINARY_API_SECRET,
     secure: true,
   });
-  console.log('✅ Cloudinary configured');
+  console.log('Cloudinary configured');
 } catch (err) {
-  console.error('❌ Cloudinary config error:', err.message);
+  console.error('Cloudinary config error:', err.message);
 }
 
-/* ============================================================
- *  MIDDLEWARES
- * ============================================================ */
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(
   cors({
     origin: '*',
-    methods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 
-// Static files
-app.use(express.static(path.join(__dirname, 'public')));
+app.use('/public', express.static(path.join(__dirname, 'public')));
 
-/* ============================================================
- *  RATE LIMITERS
- * ============================================================ */
 const loginLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 دقيقة
+  windowMs: 15 * 60 * 1000,
   max: 10,
   message: { error: 'محاولات دخول كثيرة، حاول لاحقاً.' },
   standardHeaders: true,
@@ -116,11 +98,8 @@ const apiLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-/* ============================================================
- *  MULTER (memory storage - compatible with Vercel)
- * ============================================================ */
 const ALLOWED_MIME = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
-const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_FILE_SIZE = 5 * 1024 * 1024;
 
 const upload = multer({
   storage: multer.memoryStorage(),
@@ -133,9 +112,6 @@ const upload = multer({
   },
 });
 
-/* ============================================================
- *  HELPERS
- * ============================================================ */
 function sanitizeString(v, maxLen = 500) {
   if (typeof v !== 'string') return '';
   return v
@@ -161,9 +137,6 @@ function signToken(payload) {
   return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '12h' });
 }
 
-/* ============================================================
- *  AUTH MIDDLEWARE
- * ============================================================ */
 function requireAdmin(req, res, next) {
   try {
     const header = req.headers.authorization || '';
@@ -181,9 +154,6 @@ function requireAdmin(req, res, next) {
   }
 }
 
-/* ============================================================
- *  ROUTES: AUTH
- * ============================================================ */
 app.post('/api/login', loginLimiter, async (req, res) => {
   try {
     const { username, password } = req.body || {};
@@ -213,9 +183,6 @@ app.post('/api/login', loginLimiter, async (req, res) => {
   }
 });
 
-/* ============================================================
- *  ROUTES: UPLOAD
- * ============================================================ */
 app.post('/api/upload', apiLimiter, upload.single('image'), async (req, res) => {
   try {
     if (!req.file) {
@@ -248,9 +215,6 @@ app.post('/api/upload', apiLimiter, upload.single('image'), async (req, res) => 
   }
 });
 
-/* ============================================================
- *  ROUTES: ORDERS (Public Create)
- * ============================================================ */
 app.post('/api/orders', apiLimiter, async (req, res) => {
   try {
     if (!db) {
@@ -360,9 +324,6 @@ app.post('/api/orders', apiLimiter, async (req, res) => {
   }
 });
 
-/* ============================================================
- *  ROUTES: ADMIN
- * ============================================================ */
 app.get('/api/admin/orders', requireAdmin, async (req, res) => {
   try {
     if (!db) return res.status(500).json({ error: 'قاعدة البيانات غير مهيأة.' });
@@ -448,16 +409,31 @@ app.patch('/api/admin/orders/:id', requireAdmin, async (req, res) => {
   }
 });
 
-/* ============================================================
- *  HEALTH CHECK
- * ============================================================ */
+app.delete('/api/admin/orders/:id', requireAdmin, async (req, res) => {
+  try {
+    if (!db) return res.status(500).json({ error: 'قاعدة البيانات غير مهيأة.' });
+
+    const id = sanitizeString(req.params.id, 50);
+    if (!id) return res.status(400).json({ error: 'معرّف الطلب مطلوب.' });
+
+    const ref = db.collection('orders').doc(id);
+    const doc = await ref.get();
+    if (!doc.exists) {
+      return res.status(404).json({ error: 'الطلب غير موجود.' });
+    }
+
+    await ref.delete();
+    return res.json({ success: true, id });
+  } catch (err) {
+    console.error('Admin delete error:', err);
+    return res.status(500).json({ error: 'فشل حذف الطلب.' });
+  }
+});
+
 app.get('/api/health', (req, res) => {
   res.json({ ok: true, ts: Date.now() });
 });
 
-/* ============================================================
- *  ERROR HANDLER
- * ============================================================ */
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
 
@@ -475,9 +451,6 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'حدث خطأ غير متوقع.' });
 });
 
-/* ============================================================
- *  HTML ROUTES (for direct navigation on Vercel)
- * ============================================================ */
 const htmlRoutes = {
   '/': 'home.html',
   '/home': 'home.html',
@@ -493,13 +466,10 @@ Object.entries(htmlRoutes).forEach(([route, file]) => {
   });
 });
 
-/* ============================================================
- *  LOCAL SERVER
- * ============================================================ */
 if (require.main === module) {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
-    console.log(`🚀 Sha3bytk server running on http://localhost:${PORT}`);
+    console.log(`Sha3bytk server running on http://localhost:${PORT}`);
   });
 }
 
