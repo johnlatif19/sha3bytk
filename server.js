@@ -112,6 +112,17 @@ const upload = multer({
   },
 });
 
+const uploadMultiple = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: MAX_FILE_SIZE, files: 10 },
+  fileFilter: (req, file, cb) => {
+    if (!ALLOWED_MIME.includes(file.mimetype)) {
+      return cb(new Error('نوع الملف غير مسموح. يُسمح فقط بـ jpg, jpeg, png, webp'));
+    }
+    cb(null, true);
+  },
+});
+
 function sanitizeString(v, maxLen = 500) {
   if (typeof v !== 'string') return '';
   return v
@@ -131,6 +142,11 @@ function sanitizePhone(v) {
 function generateOrderId() {
   const n = Math.floor(100000 + Math.random() * 900000);
   return `PUB-${n}`;
+}
+
+function generateWarrantyId() {
+  const n = Math.floor(100000 + Math.random() * 900000);
+  return `WRT-${n}`;
 }
 
 function signToken(payload) {
@@ -154,6 +170,27 @@ function requireAdmin(req, res, next) {
   }
 }
 
+function uploadToCloudinary(buffer, folder = 'sha3bytk') {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      {
+        folder,
+        resource_type: 'image',
+        allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
+        transformation: [{ quality: 'auto', fetch_format: 'auto' }],
+      },
+      (error, uploaded) => {
+        if (error) return reject(error);
+        resolve(uploaded);
+      }
+    );
+    stream.end(buffer);
+  });
+}
+
+/* ============================================================
+ *  AUTH
+ * ============================================================ */
 app.post('/api/login', loginLimiter, async (req, res) => {
   try {
     const { username, password } = req.body || {};
@@ -183,38 +220,26 @@ app.post('/api/login', loginLimiter, async (req, res) => {
   }
 });
 
+/* ============================================================
+ *  UPLOAD
+ * ============================================================ */
 app.post('/api/upload', apiLimiter, upload.single('image'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ error: 'من فضلك ارفع صورة.' });
     }
 
-    const result = await new Promise((resolve, reject) => {
-      const stream = cloudinary.uploader.upload_stream(
-        {
-          folder: 'sha3bytk',
-          resource_type: 'image',
-          allowed_formats: ['jpg', 'jpeg', 'png', 'webp'],
-          transformation: [{ quality: 'auto', fetch_format: 'auto' }],
-        },
-        (error, uploaded) => {
-          if (error) return reject(error);
-          resolve(uploaded);
-        }
-      );
-      stream.end(req.file.buffer);
-    });
-
-    return res.json({
-      url: result.secure_url,
-      publicId: result.public_id,
-    });
+    const result = await uploadToCloudinary(req.file.buffer, 'sha3bytk/orders');
+    return res.json({ url: result.secure_url, publicId: result.public_id });
   } catch (err) {
     console.error('Upload error:', err);
     return res.status(500).json({ error: 'فشل رفع الصورة.' });
   }
 });
 
+/* ============================================================
+ *  ORDERS (Public Create)
+ * ============================================================ */
 app.post('/api/orders', apiLimiter, async (req, res) => {
   try {
     if (!db) {
@@ -324,6 +349,9 @@ app.post('/api/orders', apiLimiter, async (req, res) => {
   }
 });
 
+/* ============================================================
+ *  ADMIN - ORDERS
+ * ============================================================ */
 app.get('/api/admin/orders', requireAdmin, async (req, res) => {
   try {
     if (!db) return res.status(500).json({ error: 'قاعدة البيانات غير مهيأة.' });
@@ -430,16 +458,135 @@ app.delete('/api/admin/orders/:id', requireAdmin, async (req, res) => {
   }
 });
 
+/* ============================================================
+ *  WARRANTY IMAGES
+ *  - Public: GET /api/warranty   (public gallery, no auth)
+ *  - Admin : POST /api/admin/warranty          (upload, multipart)
+ *  - Admin : DELETE /api/admin/warranty/:id    (delete)
+ * ============================================================ */
+app.get('/api/warranty', apiLimiter, async (req, res) => {
+  try {
+    if (!db) return res.status(500).json({ error: 'قاعدة البيانات غير مهيأة.' });
+
+    const snap = await db
+      .collection('warranty_images')
+      .orderBy('createdAt', 'desc')
+      .limit(300)
+      .get();
+
+    const items = snap.docs.map((doc) => {
+      const d = doc.data();
+      return {
+        id: d.id,
+        title: d.title || '',
+        note: d.note || '',
+        imageUrl: d.imageUrl || '',
+        publicId: d.publicId || '',
+        createdAt: d.createdAt?.toDate?.()?.toISOString?.() || null,
+      };
+    });
+
+    return res.json({ items });
+  } catch (err) {
+    console.error('Warranty list error:', err);
+    return res.status(500).json({ error: 'فشل جلب صور الضمان.' });
+  }
+});
+
+app.post(
+  '/api/admin/warranty',
+  requireAdmin,
+  uploadMultiple.array('images', 10),
+  async (req, res) => {
+    try {
+      if (!db) return res.status(500).json({ error: 'قاعدة البيانات غير مهيأة.' });
+
+      const files = Array.isArray(req.files) ? req.files : [];
+      if (files.length === 0) {
+        return res.status(400).json({ error: 'من فضلك ارفع صورة واحدة على الأقل.' });
+      }
+
+      const title = sanitizeString(req.body?.title, 120);
+      const note = sanitizeString(req.body?.note, 300);
+
+      const created = [];
+
+      for (const file of files) {
+        const uploaded = await uploadToCloudinary(file.buffer, 'sha3bytk/warranty');
+        const id = generateWarrantyId();
+
+        const doc = {
+          id,
+          title,
+          note,
+          imageUrl: uploaded.secure_url,
+          publicId: uploaded.public_id || '',
+          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        };
+
+        await db.collection('warranty_images').doc(id).set(doc);
+        created.push({ id, imageUrl: doc.imageUrl });
+      }
+
+      return res.status(201).json({ success: true, created });
+    } catch (err) {
+      console.error('Warranty upload error:', err);
+      return res.status(500).json({ error: 'فشل رفع صور الضمان.' });
+    }
+  }
+);
+
+app.delete('/api/admin/warranty/:id', requireAdmin, async (req, res) => {
+  try {
+    if (!db) return res.status(500).json({ error: 'قاعدة البيانات غير مهيأة.' });
+
+    const id = sanitizeString(req.params.id, 50);
+    if (!id) return res.status(400).json({ error: 'معرّف الصورة مطلوب.' });
+
+    const ref = db.collection('warranty_images').doc(id);
+    const doc = await ref.get();
+    if (!doc.exists) {
+      return res.status(404).json({ error: 'الصورة غير موجودة.' });
+    }
+
+    const data = doc.data();
+
+    // حذف من Cloudinary (لو موجود publicId)
+    if (data?.publicId) {
+      try {
+        await cloudinary.uploader.destroy(data.publicId);
+      } catch (cErr) {
+        console.warn('Cloudinary destroy failed:', cErr.message);
+      }
+    }
+
+    await ref.delete();
+    return res.json({ success: true, id });
+  } catch (err) {
+    console.error('Warranty delete error:', err);
+    return res.status(500).json({ error: 'فشل حذف صورة الضمان.' });
+  }
+});
+
+/* ============================================================
+ *  HEALTH
+ * ============================================================ */
 app.get('/api/health', (req, res) => {
   res.json({ ok: true, ts: Date.now() });
 });
 
+/* ============================================================
+ *  ERROR HANDLER
+ * ============================================================ */
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
 
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json({ error: 'حجم الصورة كبير جداً (الحد 5MB).' });
+    }
+    if (err.code === 'LIMIT_FILE_COUNT') {
+      return res.status(400).json({ error: 'عدد الصور أكبر من الحد المسموح.' });
     }
     return res.status(400).json({ error: 'خطأ في رفع الملف.' });
   }
@@ -451,6 +598,9 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'حدث خطأ غير متوقع.' });
 });
 
+/* ============================================================
+ *  HTML ROUTES
+ * ============================================================ */
 const htmlRoutes = {
   '/': 'home.html',
   '/home': 'home.html',
@@ -458,6 +608,7 @@ const htmlRoutes = {
   '/sale': 'sale.html',
   '/login': 'login.html',
   '/dashboard': 'dashboard.html',
+  '/warranty-images': 'warranty-images.html',
 };
 
 Object.entries(htmlRoutes).forEach(([route, file]) => {
@@ -466,6 +617,9 @@ Object.entries(htmlRoutes).forEach(([route, file]) => {
   });
 });
 
+/* ============================================================
+ *  LOCAL SERVER
+ * ============================================================ */
 if (require.main === module) {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
