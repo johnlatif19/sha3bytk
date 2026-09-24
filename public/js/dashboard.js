@@ -26,25 +26,21 @@
       dir: 'rtl', lang: 'ar', switchLabel: 'EN',
       title: 'Sha3bytk | لوحة التحكم',
       tagline: 'بيع • اشتري • شعبيتك',
-      siteBtn: 'الموقع',
       navBuy: 'شراء',
       navSale: 'بيع',
       navWarranty: 'صور ضمان',
-      warrantyPageBtn: 'صور الضمان',
-      logout: 'خروج',
-      badge: 'لوحة الإدارة',
-      title2: 'إدارة الطلبات',
-      sub: 'تابع كل طلبات البيع والشراء وحدّث حالاتها.',
-      statTotal: 'إجمالي الطلبات',
-      statBuy: 'طلبات الشراء',
-      statSale: 'طلبات البيع',
+      logout: 'تسجيل الخروج',
+      buyTitle: 'طلبات الشراء',
+      buySub: 'تابع كل طلبات الشراء القادمة من المستخدمين.',
+      saleTitle: 'طلبات البيع',
+      saleSub: 'تابع كل طلبات البيع القادمة من المستخدمين.',
+      statTotalBuy: 'إجمالي الشراء',
+      statTotalSale: 'إجمالي البيع',
       statPending: 'قيد الانتظار',
       statCompleted: 'مكتملة',
       searchPh: 'ابحث بالاسم / الهاتف / رقم الطلب',
       filterAll: 'كل الحالات',
       refresh: 'تحديث',
-      tabBuy: 'طلبات الشراء',
-      tabSale: 'طلبات البيع',
       thId: 'الطلب',
       thName: 'الاسم',
       thGameName: 'اسم اللعبة',
@@ -83,8 +79,6 @@
       loadFailed: 'فشل تحميل الطلبات',
       unauthorized: 'انتهت الجلسة. من فضلك سجّل الدخول مرة أخرى.',
       logoutConfirm: 'هل تريد تسجيل الخروج؟',
-      rights: 'جميع الحقوق محفوظة.',
-
       warrantyTitle: 'صور الضمان',
       warrantySub: 'ارفع صور الضمانات هنا لتظهر في صفحة الضمانات العامة.',
       warrantyFieldTitle: 'العنوان (اختياري)',
@@ -108,25 +102,21 @@
       dir: 'ltr', lang: 'en', switchLabel: 'AR',
       title: 'Sha3bytk | Dashboard',
       tagline: 'Sell • Buy • Your Popularity',
-      siteBtn: 'Site',
       navBuy: 'Buy',
       navSale: 'Sell',
       navWarranty: 'Warranty',
-      warrantyPageBtn: 'Warranty Images',
       logout: 'Logout',
-      badge: 'Admin Panel',
-      title2: 'Orders Management',
-      sub: 'Track all buy and sell orders and update their statuses.',
-      statTotal: 'Total Orders',
-      statBuy: 'Buy Orders',
-      statSale: 'Sale Orders',
+      buyTitle: 'Buy Orders',
+      buySub: 'Track all incoming buy orders.',
+      saleTitle: 'Sell Orders',
+      saleSub: 'Track all incoming sell orders.',
+      statTotalBuy: 'Total Buy',
+      statTotalSale: 'Total Sell',
       statPending: 'Pending',
       statCompleted: 'Completed',
       searchPh: 'Search by name / phone / order ID',
       filterAll: 'All statuses',
       refresh: 'Refresh',
-      tabBuy: 'Buy Orders',
-      tabSale: 'Sale Orders',
       thId: 'ID',
       thName: 'Name',
       thGameName: 'In-game Name',
@@ -165,8 +155,6 @@
       loadFailed: 'Failed to load orders',
       unauthorized: 'Session expired. Please sign in again.',
       logoutConfirm: 'Do you want to logout?',
-      rights: 'All rights reserved.',
-
       warrantyTitle: 'Warranty Images',
       warrantySub: 'Upload warranty images here to show them on the public warranty page.',
       warrantyFieldTitle: 'Title (optional)',
@@ -191,7 +179,6 @@
   let currentLang = 'ar';
   let ordersCache = [];
   let warrantyCache = [];
-  let activeTab = 'buy';
   let currentOrderId = null;
 
   const t = (key) => (I18N[currentLang] && I18N[currentLang][key]) || key;
@@ -258,12 +245,7 @@
       const d = new Date(iso);
       if (isNaN(d.getTime())) return t('noData');
       const pad = (n) => String(n).padStart(2, '0');
-      const yyyy = d.getFullYear();
-      const mm = pad(d.getMonth() + 1);
-      const dd = pad(d.getDate());
-      const hh = pad(d.getHours());
-      const mi = pad(d.getMinutes());
-      return `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
+      return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
     } catch {
       return t('noData');
     }
@@ -314,7 +296,41 @@
     return data;
   };
 
-  /* ============ Orders ============ */
+  /* ===== View switching ===== */
+  const switchView = (view) => {
+    const views = ['buy', 'sale', 'warranty'];
+    if (!views.includes(view)) view = 'buy';
+
+    views.forEach((v) => {
+      const el = document.getElementById('view' + v.charAt(0).toUpperCase() + v.slice(1));
+      if (el) el.hidden = v !== view;
+    });
+
+    document.querySelectorAll('.side-link').forEach((btn) => {
+      const v = btn.getAttribute('data-view');
+      btn.classList.toggle('active', v === view);
+    });
+
+    try { localStorage.setItem('sha3bytk_dash_view', view); } catch {}
+
+    closeSidebar();
+  };
+
+  const openSidebar = () => {
+    const sb = document.getElementById('sidebar');
+    const ov = document.getElementById('overlay');
+    if (sb) sb.classList.add('open');
+    if (ov) ov.classList.add('show');
+  };
+
+  const closeSidebar = () => {
+    const sb = document.getElementById('sidebar');
+    const ov = document.getElementById('overlay');
+    if (sb) sb.classList.remove('open');
+    if (ov) ov.classList.remove('show');
+  };
+
+  /* ===== Orders ===== */
   const loadOrders = async () => {
     try {
       const data = await apiFetch('/api/admin/orders');
@@ -326,44 +342,38 @@
   };
 
   const updateStats = () => {
-    const total = ordersCache.length;
-    const buy = ordersCache.filter((o) => o.type === 'buy').length;
-    const sale = ordersCache.filter((o) => o.type === 'sale').length;
-    const pending = ordersCache.filter((o) => o.status === 'pending').length;
-    const completed = ordersCache.filter((o) => o.status === 'completed').length;
+    const buyAll = ordersCache.filter((o) => o.type === 'buy');
+    const saleAll = ordersCache.filter((o) => o.type === 'sale');
 
     const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = String(v); };
-    set('statTotal', total);
-    set('statBuy', buy);
-    set('statSale', sale);
-    set('statPending', pending);
-    set('statCompleted', completed);
+
+    set('statBuyTotal', buyAll.length);
+    set('statBuyPending', buyAll.filter((o) => o.status === 'pending').length);
+    set('statBuyCompleted', buyAll.filter((o) => o.status === 'completed').length);
+
+    set('statSaleTotal', saleAll.length);
+    set('statSalePending', saleAll.filter((o) => o.status === 'pending').length);
+    set('statSaleCompleted', saleAll.filter((o) => o.status === 'completed').length);
   };
 
-  const filteredOrders = (type) => {
-    const q = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
-    const status = document.getElementById('statusFilter')?.value || '';
+  const filterOrders = (type, searchId, filterId) => {
+    const q = (document.getElementById(searchId)?.value || '').trim().toLowerCase();
+    const status = document.getElementById(filterId)?.value || '';
 
     return ordersCache.filter((o) => {
       if (o.type !== type) return false;
       if (status && o.status !== status) return false;
       if (!q) return true;
 
-      const hay = [
-        o.id, o.name, o.phone, o.gameName, o.pubgId, o.cardName,
-      ].filter(Boolean).join(' ').toLowerCase();
-
+      const hay = [o.id, o.name, o.phone, o.gameName, o.pubgId, o.cardName]
+        .filter(Boolean).join(' ').toLowerCase();
       return hay.includes(q);
     });
   };
 
   const actionButtons = (id) => `
-    <button type="button" class="view-btn" data-view="${escapeAttr(id)}">
-      ${escapeHtml(t('view'))}
-    </button>
-    <button type="button" class="del-btn" data-del="${escapeAttr(id)}">
-      ${escapeHtml(t('delete'))}
-    </button>
+    <button type="button" class="view-btn" data-view="${escapeAttr(id)}">${escapeHtml(t('view'))}</button>
+    <button type="button" class="del-btn" data-del="${escapeAttr(id)}">${escapeHtml(t('delete'))}</button>
   `;
 
   const renderBuyTable = () => {
@@ -371,29 +381,27 @@
     const empty = document.getElementById('buyEmpty');
     if (!body) return;
 
-    const rows = filteredOrders('buy');
-    body.innerHTML = rows
-      .map((o) => {
-        const amount = o.popularityType === 'misc'
-          ? (o.popularityAmount != null ? String(o.popularityAmount) : t('noData'))
-          : t('noData');
+    const rows = filterOrders('buy', 'buySearchInput', 'buyStatusFilter');
+    body.innerHTML = rows.map((o) => {
+      const amount = o.popularityType === 'misc'
+        ? (o.popularityAmount != null ? String(o.popularityAmount) : t('noData'))
+        : t('noData');
 
-        return `
-          <tr>
-            <td class="cell-id">#${escapeHtml(o.id || '')}</td>
-            <td class="cell-strong">${escapeHtml(o.name || t('noData'))}</td>
-            <td>${escapeHtml(o.gameName || t('noData'))}</td>
-            <td>${escapeHtml(o.pubgId || t('noData'))}</td>
-            <td class="cell-muted">${escapeHtml(o.phone || t('noData'))}</td>
-            <td>${escapeHtml(amount)}</td>
-            <td>${escapeHtml(typeLabel(o.popularityType))}</td>
-            <td>${statusBadge(o.status)}</td>
-            <td class="cell-muted">${escapeHtml(formatDate(o.createdAt))}</td>
-            <td class="cell-actions">${actionButtons(o.id || '')}</td>
-          </tr>
-        `;
-      })
-      .join('');
+      return `
+        <tr>
+          <td class="cell-id">#${escapeHtml(o.id || '')}</td>
+          <td class="cell-strong">${escapeHtml(o.name || t('noData'))}</td>
+          <td>${escapeHtml(o.gameName || t('noData'))}</td>
+          <td>${escapeHtml(o.pubgId || t('noData'))}</td>
+          <td class="cell-muted">${escapeHtml(o.phone || t('noData'))}</td>
+          <td>${escapeHtml(amount)}</td>
+          <td>${escapeHtml(typeLabel(o.popularityType))}</td>
+          <td>${statusBadge(o.status)}</td>
+          <td class="cell-muted">${escapeHtml(formatDate(o.createdAt))}</td>
+          <td class="cell-actions">${actionButtons(o.id || '')}</td>
+        </tr>
+      `;
+    }).join('');
 
     if (empty) empty.hidden = rows.length !== 0;
   };
@@ -403,28 +411,26 @@
     const empty = document.getElementById('saleEmpty');
     if (!body) return;
 
-    const rows = filteredOrders('sale');
-    body.innerHTML = rows
-      .map((o) => {
-        const amount = o.popularityType === 'misc'
-          ? (o.popularityAmount != null ? String(o.popularityAmount) : t('noData'))
-          : t('noData');
+    const rows = filterOrders('sale', 'saleSearchInput', 'saleStatusFilter');
+    body.innerHTML = rows.map((o) => {
+      const amount = o.popularityType === 'misc'
+        ? (o.popularityAmount != null ? String(o.popularityAmount) : t('noData'))
+        : t('noData');
 
-        return `
-          <tr>
-            <td class="cell-id">#${escapeHtml(o.id || '')}</td>
-            <td class="cell-strong">${escapeHtml(o.name || t('noData'))}</td>
-            <td class="cell-muted">${escapeHtml(o.phone || t('noData'))}</td>
-            <td>${escapeHtml(typeLabel(o.popularityType))}</td>
-            <td>${escapeHtml(o.cardName || t('noData'))}</td>
-            <td>${escapeHtml(amount)}</td>
-            <td>${statusBadge(o.status)}</td>
-            <td class="cell-muted">${escapeHtml(formatDate(o.createdAt))}</td>
-            <td class="cell-actions">${actionButtons(o.id || '')}</td>
-          </tr>
-        `;
-      })
-      .join('');
+      return `
+        <tr>
+          <td class="cell-id">#${escapeHtml(o.id || '')}</td>
+          <td class="cell-strong">${escapeHtml(o.name || t('noData'))}</td>
+          <td class="cell-muted">${escapeHtml(o.phone || t('noData'))}</td>
+          <td>${escapeHtml(typeLabel(o.popularityType))}</td>
+          <td>${escapeHtml(o.cardName || t('noData'))}</td>
+          <td>${escapeHtml(amount)}</td>
+          <td>${statusBadge(o.status)}</td>
+          <td class="cell-muted">${escapeHtml(formatDate(o.createdAt))}</td>
+          <td class="cell-actions">${actionButtons(o.id || '')}</td>
+        </tr>
+      `;
+    }).join('');
 
     if (empty) empty.hidden = rows.length !== 0;
   };
@@ -435,23 +441,13 @@
     renderSaleTable();
   };
 
-  const openModal = (id) => {
-    const el = document.getElementById(id);
-    if (el) el.hidden = false;
-  };
-
-  const closeModal = (id) => {
-    const el = document.getElementById(id);
-    if (el) el.hidden = true;
-  };
+  const openModal = (id) => { const el = document.getElementById(id); if (el) el.hidden = false; };
+  const closeModal = (id) => { const el = document.getElementById(id); if (el) el.hidden = true; };
 
   const buildDetailRows = (pairs) =>
-    pairs
-      .map(
-        ([k, v]) =>
-          `<div class="detail-row"><span class="detail-key">${escapeHtml(k)}</span><span class="detail-val">${escapeHtml(v == null || v === '' ? t('noData') : String(v))}</span></div>`
-      )
-      .join('');
+    pairs.map(([k, v]) =>
+      `<div class="detail-row"><span class="detail-key">${escapeHtml(k)}</span><span class="detail-val">${escapeHtml(v == null || v === '' ? t('noData') : String(v))}</span></div>`
+    ).join('');
 
   const showDetails = (order) => {
     if (!order) return;
@@ -483,8 +479,7 @@
     pairs.push([t('thStatus'), statusLabel(order.status)]);
     pairs.push([t('thDate'), formatDate(order.createdAt)]);
 
-    const html =
-      buildDetailRows(pairs) +
+    const html = buildDetailRows(pairs) +
       (order.cardImageUrl
         ? `<div class="detail-img"><img src="${escapeAttr(order.cardImageUrl)}" alt="card" data-zoom="${escapeAttr(order.cardImageUrl)}" draggable="false" /></div>`
         : '');
@@ -495,8 +490,7 @@
     const statusSelect = document.getElementById('statusSelect');
     if (statusSelect) {
       statusSelect.value = ['pending', 'processing', 'completed', 'cancelled'].includes(order.status)
-        ? order.status
-        : 'pending';
+        ? order.status : 'pending';
     }
 
     openModal('detailsModal');
@@ -538,10 +532,7 @@
     if (!confirm(t('deleteConfirm'))) return;
 
     try {
-      await apiFetch(`/api/admin/orders/${encodeURIComponent(orderId)}`, {
-        method: 'DELETE',
-      });
-
+      await apiFetch(`/api/admin/orders/${encodeURIComponent(orderId)}`, { method: 'DELETE' });
       ordersCache = ordersCache.filter((o) => o.id !== orderId);
       renderAll();
       alert(t('deleted'));
@@ -550,7 +541,7 @@
     }
   };
 
-  /* ============ Warranty ============ */
+  /* ===== Warranty ===== */
   const loadWarranty = async () => {
     try {
       const data = await apiFetch('/api/warranty');
@@ -564,7 +555,6 @@
   const filteredWarranty = () => {
     const q = (document.getElementById('warrantySearchInput')?.value || '').trim().toLowerCase();
     if (!q) return warrantyCache;
-
     return warrantyCache.filter((it) => {
       const hay = [it.title, it.note].filter(Boolean).join(' ').toLowerCase();
       return hay.includes(q);
@@ -578,31 +568,27 @@
 
     const items = filteredWarranty();
 
-    grid.innerHTML = items
-      .map((it) => {
-        const title = it.title && it.title.trim() ? it.title : t('warrantyNoTitle');
-        const note = it.note && it.note.trim() ? it.note : '';
-        const date = it.createdAt ? formatDate(it.createdAt) : '';
+    grid.innerHTML = items.map((it) => {
+      const title = it.title && it.title.trim() ? it.title : t('warrantyNoTitle');
+      const note = it.note && it.note.trim() ? it.note : '';
+      const date = it.createdAt ? formatDate(it.createdAt) : '';
 
-        return `
-          <div class="warranty-card">
-            <div class="warranty-thumb" data-wzoom="${escapeAttr(it.imageUrl || '')}">
-              <img src="${escapeAttr(it.imageUrl || '')}" alt="warranty" loading="lazy" draggable="false" />
-            </div>
-            <div class="warranty-body">
-              <div class="warranty-title">${escapeHtml(title)}</div>
-              ${note ? `<div class="warranty-note">${escapeHtml(note)}</div>` : ''}
-              ${date ? `<div class="warranty-date">${escapeHtml(date)}</div>` : ''}
-            </div>
-            <div class="warranty-actions-row">
-              <button type="button" class="del-btn" data-wdel="${escapeAttr(it.id || '')}">
-                ${escapeHtml(t('delete'))}
-              </button>
-            </div>
+      return `
+        <div class="warranty-card">
+          <div class="warranty-thumb" data-wzoom="${escapeAttr(it.imageUrl || '')}">
+            <img src="${escapeAttr(it.imageUrl || '')}" alt="warranty" loading="lazy" draggable="false" />
           </div>
-        `;
-      })
-      .join('');
+          <div class="warranty-body">
+            <div class="warranty-title">${escapeHtml(title)}</div>
+            ${note ? `<div class="warranty-note">${escapeHtml(note)}</div>` : ''}
+            ${date ? `<div class="warranty-date">${escapeHtml(date)}</div>` : ''}
+          </div>
+          <div class="warranty-actions-row">
+            <button type="button" class="del-btn" data-wdel="${escapeAttr(it.id || '')}">${escapeHtml(t('delete'))}</button>
+          </div>
+        </div>
+      `;
+    }).join('');
 
     if (empty) empty.hidden = items.length !== 0;
   };
@@ -633,16 +619,10 @@
     const original = btn.textContent;
     btn.disabled = true;
     btn.textContent = t('warrantyUploading');
-    if (msg) {
-      msg.textContent = '';
-      msg.classList.remove('success', 'error');
-    }
+    if (msg) { msg.textContent = ''; msg.classList.remove('success', 'error'); }
 
     try {
-      await apiFetch('/api/admin/warranty', {
-        method: 'POST',
-        body: fd,
-      });
+      await apiFetch('/api/admin/warranty', { method: 'POST', body: fd });
 
       input.value = '';
       if (titleInput) titleInput.value = '';
@@ -674,10 +654,7 @@
     if (!confirm(t('warrantyDeleteConfirm'))) return;
 
     try {
-      await apiFetch(`/api/admin/warranty/${encodeURIComponent(id)}`, {
-        method: 'DELETE',
-      });
-
+      await apiFetch(`/api/admin/warranty/${encodeURIComponent(id)}`, { method: 'DELETE' });
       warrantyCache = warrantyCache.filter((it) => it.id !== id);
       renderWarranty();
       alert(t('warrantyDeleted'));
@@ -686,11 +663,8 @@
     }
   };
 
-  /* ============ Events ============ */
+  /* ===== Events ===== */
   const bindEvents = () => {
-    const yearEl = document.getElementById('year');
-    if (yearEl) yearEl.textContent = new Date().getFullYear();
-
     const langBtn = document.getElementById('langBtn');
     if (langBtn) {
       langBtn.addEventListener('click', () => {
@@ -720,37 +694,58 @@
       });
     }
 
-    const searchInput = document.getElementById('searchInput');
-    if (searchInput) searchInput.addEventListener('input', renderAll);
-
-    const statusFilter = document.getElementById('statusFilter');
-    if (statusFilter) statusFilter.addEventListener('change', renderAll);
-
-    const refreshBtn = document.getElementById('refreshBtn');
-    if (refreshBtn) refreshBtn.addEventListener('click', loadOrders);
-
-    document.querySelectorAll('.tab').forEach((tab) => {
-      tab.addEventListener('click', () => {
-        const target = tab.getAttribute('data-tab');
-        if (!target) return;
-        activeTab = target;
-
-        document.querySelectorAll('.tab').forEach((x) => x.classList.remove('active'));
-        tab.classList.add('active');
-
-        const panelBuy = document.getElementById('panelBuy');
-        const panelSale = document.getElementById('panelSale');
-        if (panelBuy) panelBuy.hidden = target !== 'buy';
-        if (panelSale) panelSale.hidden = target !== 'sale';
+    document.querySelectorAll('.side-link').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const v = btn.getAttribute('data-view');
+        if (v) switchView(v);
       });
     });
+
+    const menuToggle = document.getElementById('menuToggle');
+    if (menuToggle) {
+      menuToggle.addEventListener('click', () => {
+        const sb = document.getElementById('sidebar');
+        if (sb && sb.classList.contains('open')) closeSidebar();
+        else openSidebar();
+      });
+    }
+
+    const overlay = document.getElementById('overlay');
+    if (overlay) overlay.addEventListener('click', closeSidebar);
+
+    const buySearch = document.getElementById('buySearchInput');
+    if (buySearch) buySearch.addEventListener('input', renderBuyTable);
+
+    const buyFilter = document.getElementById('buyStatusFilter');
+    if (buyFilter) buyFilter.addEventListener('change', renderBuyTable);
+
+    const buyRefresh = document.getElementById('buyRefreshBtn');
+    if (buyRefresh) buyRefresh.addEventListener('click', loadOrders);
+
+    const saleSearch = document.getElementById('saleSearchInput');
+    if (saleSearch) saleSearch.addEventListener('input', renderSaleTable);
+
+    const saleFilter = document.getElementById('saleStatusFilter');
+    if (saleFilter) saleFilter.addEventListener('change', renderSaleTable);
+
+    const saleRefresh = document.getElementById('saleRefreshBtn');
+    if (saleRefresh) saleRefresh.addEventListener('click', loadOrders);
+
+    const warrantySearch = document.getElementById('warrantySearchInput');
+    if (warrantySearch) warrantySearch.addEventListener('input', renderWarranty);
+
+    const warrantyRefresh = document.getElementById('warrantyRefreshBtn');
+    if (warrantyRefresh) warrantyRefresh.addEventListener('click', loadWarranty);
+
+    const warrantyForm = document.getElementById('warrantyForm');
+    if (warrantyForm) warrantyForm.addEventListener('submit', uploadWarranty);
 
     document.addEventListener('click', (e) => {
       const target = e.target;
       if (!(target instanceof HTMLElement)) return;
 
       const viewBtn = target.closest('[data-view]');
-      if (viewBtn) {
+      if (viewBtn && viewBtn.classList.contains('view-btn')) {
         const id = viewBtn.getAttribute('data-view');
         const order = ordersCache.find((o) => o.id === id);
         if (order) showDetails(order);
@@ -803,26 +798,6 @@
         if (e.target === m) m.hidden = true;
       });
     });
-
-    if (activeTab === 'sale') {
-      document.querySelectorAll('.tab').forEach((x) => {
-        const isSale = x.getAttribute('data-tab') === 'sale';
-        x.classList.toggle('active', isSale);
-      });
-      const panelBuy = document.getElementById('panelBuy');
-      const panelSale = document.getElementById('panelSale');
-      if (panelBuy) panelBuy.hidden = true;
-      if (panelSale) panelSale.hidden = false;
-    }
-
-    const warrantyForm = document.getElementById('warrantyForm');
-    if (warrantyForm) warrantyForm.addEventListener('submit', uploadWarranty);
-
-    const warrantySearchInput = document.getElementById('warrantySearchInput');
-    if (warrantySearchInput) warrantySearchInput.addEventListener('input', renderWarranty);
-
-    const warrantyRefreshBtn = document.getElementById('warrantyRefreshBtn');
-    if (warrantyRefreshBtn) warrantyRefreshBtn.addEventListener('click', loadWarranty);
   };
 
   document.addEventListener('DOMContentLoaded', () => {
@@ -837,5 +812,10 @@
     bindEvents();
     loadOrders();
     loadWarranty();
+
+    // Start view (from localStorage or default to buy)
+    let startView = 'buy';
+    try { startView = localStorage.getItem('sha3bytk_dash_view') || 'buy'; } catch {}
+    switchView(startView);
   });
 })();
