@@ -26,6 +26,7 @@
       </a>
 
       <div class="header-actions">
+        <a href="/warranty-images" class="back-btn" data-i18n="warrantyPageBtn">صور الضمان</a>
         <a href="/" class="back-btn" data-i18n="siteBtn">الموقع</a>
         <button type="button" class="theme-btn" id="themeBtn" aria-label="Toggle theme">Dark</button>
         <button type="button" class="lang-btn" id="langBtn" aria-label="Switch language">EN</button>
@@ -139,6 +140,66 @@
           </div>
           <div class="empty" id="saleEmpty" hidden data-i18n="empty">لا توجد طلبات</div>
         </div>
+      </div>
+    </section>
+
+    <section class="warranty-section">
+      <div class="container">
+        <div class="section-head">
+          <div>
+            <h2 data-i18n="warrantyTitle">صور الضمان</h2>
+            <p data-i18n="warrantySub">ارفع صور الضمانات هنا لتظهر في صفحة الضمانات العامة.</p>
+          </div>
+          <a href="/warranty-images" class="back-btn" data-i18n="warrantyPageBtn">صور الضمان</a>
+        </div>
+
+        <form id="warrantyForm" class="warranty-form" novalidate>
+          <div class="warranty-form-grid">
+            <div class="field">
+              <label for="warrantyTitle" data-i18n="warrantyFieldTitle">العنوان (اختياري)</label>
+              <input type="text" id="warrantyTitle" name="title" maxlength="120" />
+            </div>
+
+            <div class="field">
+              <label for="warrantyNote" data-i18n="warrantyFieldNote">ملاحظة (اختياري)</label>
+              <input type="text" id="warrantyNote" name="note" maxlength="300" />
+            </div>
+
+            <div class="field">
+              <label for="warrantyImages" data-i18n="warrantyFieldImages">الصور (حتى 10 صور)</label>
+              <input
+                type="file"
+                id="warrantyImages"
+                name="images"
+                accept="image/jpeg,image/jpg,image/png,image/webp"
+                multiple
+              />
+              <span class="hint" data-i18n="warrantyHint">الحد الأقصى 5MB لكل صورة</span>
+            </div>
+          </div>
+
+          <div class="form-actions warranty-actions">
+            <button type="submit" class="btn-primary" id="warrantyUploadBtn" data-i18n="warrantyUpload">
+              رفع الصور
+            </button>
+          </div>
+
+          <div class="form-msg" id="warrantyMsg"></div>
+        </form>
+
+        <div class="warranty-toolbar">
+          <input
+            type="text"
+            id="warrantySearchInput"
+            class="toolbar-input"
+            placeholder="ابحث في صور الضمان"
+            data-i18n-ph="warrantySearchPh"
+          />
+          <button type="button" class="refresh-btn" id="warrantyRefreshBtn" data-i18n="refresh">تحديث</button>
+        </div>
+
+        <div class="warranty-grid" id="warrantyGrid"></div>
+        <div class="empty" id="warrantyEmpty" hidden data-i18n="warrantyEmpty">لا توجد صور ضمان بعد</div>
       </div>
     </section>
   </main>
